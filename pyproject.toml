@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=45", "wheel>=0.36", "setuptools_scm>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+[tool.black]
+exclude = '''
+/(
+      \.git
+    | venv
+    | __pycache__
+    | \.tox
+)/
+'''
