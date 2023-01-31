@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, Iterable
 
 from .entities import (
@@ -7,8 +8,16 @@ from .entities import (
     Image,
     ImageDetectReqParams,
     ImageAnalysisResult,
+    ImageAnalysisFailedResult,
     ImageDetectResponse,
+    FoundAttribute,
+    FoundText,
+    FoundColor,
+    Point,
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PayloadFactory:
@@ -23,22 +32,21 @@ class PayloadFactory:
     @staticmethod
     def create_analyse_attributes(
         attributes: Iterable[AnalysisAttributes],
-    ) -> dict[str, list[str]]:
-        attrs_str = [x.value for x in attributes]
-        return {"attributes": attrs_str}
+    ) -> list[str]:
+        return [x.value for x in attributes]
 
     @classmethod
     def create_image_detect(cls, req_params: ImageDetectReqParams) -> dict[str, Any]:
         return {
-            "images": [cls.create_images(req_params.images)],
+            "images": cls.create_images(req_params.images),
             "attributes": cls.create_analyse_attributes(req_params.analyse_attributes),
             "optimize_throughput": req_params.optimize_throughput,
         }
 
 
-class EntityFactory():
-    @staticmethod
-    def create_img_analysis_result(payload: dict[str, Any]) -> ImageAnalysisResult:
+class EntityFactory:
+    @classmethod
+    def create_img_analysis_result(cls, payload: dict[str, Any]) -> ImageAnalysisResult:
         return ImageAnalysisResult(
             version=payload["version"],
             cached=payload["cached"],
@@ -46,24 +54,77 @@ class EntityFactory():
             hash=payload["hash"],
             cache_origin=payload["cache_origin"],
             elapsed=payload["elapsed"],
-            logos=payload["logos"],
-            objects=payload["objects"],
-            scenes=payload["scenes"],
-            people=payload["people"],
-            activities=payload["activities"],
-            type=payload["type"],
-            subtype=payload["subtype"],
-            content_sensitivity=payload["content_sensitivity"],
-            texts=payload["texts"],
-            embedding=payload["embedding"],
-            colors=payload["colors"],
+            logos=[cls.create_found_attribute(x) for x in payload.get("logos", [])],
+            objects=[cls.create_found_attribute(x) for x in payload.get("objects", [])],
+            scenes=[cls.create_found_attribute(x) for x in payload.get("scenes", [])],
+            people=[cls.create_found_attribute(x) for x in payload.get("people", [])],
+            activities=[
+                cls.create_found_attribute(x) for x in payload.get("activities", [])
+            ],
+            type=payload.get("type"),
+            subtype=payload.get("subtype"),
+            content_sensitivity=[
+                cls.create_found_attribute(x)
+                for x in payload.get("content_sensitivity", [])
+            ],
+            texts=[cls.create_found_text(x) for x in payload.get("texts", [])],
+            embedding=payload.get("embedding", []),
+            colors=[cls.create_color(x) for x in payload.get("colors", [])],
+        )
+
+    @staticmethod
+    def create_img_analysis_failed_result(
+        payload: dict[str, Any],
+    ) -> ImageAnalysisFailedResult:
+        return ImageAnalysisFailedResult(
+            status=payload["status"],
+            error_text=payload.get("Error", ""),
+        )
+
+    @staticmethod
+    def create_found_attribute(
+        payload: dict[str, Any],
+    ) -> FoundAttribute:
+        return FoundAttribute(label=payload["label"], confidence=payload["confidence"])
+
+    @staticmethod
+    def create_found_text(
+        payload: dict[str, Any],
+    ) -> FoundText:
+        return FoundText(
+            label=payload["label"],
+            confidence=payload["confidence"],
+            topleft=Point(
+                x=payload["topleft"]["x"],
+                y=payload["topleft"]["y"],
+            ),
+            bottomright=Point(
+                x=payload["bottomright"]["x"],
+                y=payload["bottomright"]["y"],
+            ),
+        )
+
+    @staticmethod
+    def create_color(
+        payload: dict[str, Any],
+    ) -> FoundColor:
+        return FoundColor(
+            color=payload["color"],
+            shade=payload["shade"],
+            percentage=payload["percentage"],
         )
 
     @classmethod
     def create_detect_response(cls, payload: dict[str, Any]) -> ImageDetectResponse:
         assert "results" in payload, "'results' field is not in the response"
 
-        results = []
+        results: list[ImageAnalysisResult | ImageAnalysisFailedResult] = []
         for img_res_payload in payload["results"]:
-            results.append(cls.create_img_analysis_result(img_res_payload))
+            if "status" in img_res_payload:
+                # Observations, why errors might occur:
+                # 1. Signature expired
+                # 2. Object type (we store .mp4 files under .jpg key in s3)
+                results.append(cls.create_img_analysis_failed_result(img_res_payload))
+            else:
+                results.append(cls.create_img_analysis_result(img_res_payload))
         return ImageDetectResponse(results=results)

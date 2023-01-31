@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Sequence
 import enum
 
 
@@ -16,10 +16,6 @@ class AnalysisAttributes(str, enum.Enum):
     EMBEDDING = "embedding"
     COLORS = "colors"
 
-    @classmethod
-    def all(cls) -> tuple[Any, ...]:
-        return tuple(map(lambda c: c.value, cls))  # type: ignore
-
 
 @dataclass(frozen=True)
 class Image:
@@ -33,39 +29,65 @@ class Image:
 
 @dataclass(frozen=True)
 class ImageDetectReqParams:
-    images: tuple[Image]
+    images: Sequence[Image]
     optimize_throughput: bool = False
-    analyse_attributes: tuple[AnalysisAttributes, ...] = AnalysisAttributes.all()
+    analyse_attributes: Sequence[AnalysisAttributes] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
-class AnalysisLabel:
-    name: str
+class FoundAttribute:
+    label: str
     confidence: float
+
+
+@dataclass(frozen=True)
+class Point:  # X, Y coords
+    x: int
+    y: int
+
+
+@dataclass(frozen=True)
+class FoundText(FoundAttribute):
+    # bounding box coordinates with text found on image
+    topleft: Point
+    bottomright: Point
+
+
+@dataclass(frozen=True)
+class FoundColor:
+    color: str
+    shade: str
+    percentage: float
+
+
+@dataclass(frozen=True)
+class ImageAnalysisFailedResult:
+    status: str
+    error_text: str
 
 
 @dataclass(frozen=True)
 class ImageAnalysisResult:
     version: str
     cached: bool
-    cached_attributes: tuple[AnalysisAttributes]
+    cached_attributes: Sequence[AnalysisAttributes]
     hash: str
-    cache_origin: str
     elapsed: float
+    cache_origin: str | None = None
     # Those are returned if ImageDetectReqParams.analyse_attributes contains them
-    logos: tuple[AnalysisLabel, ...] | None = None
-    objects: tuple[AnalysisLabel, ...] | None = None
-    scenes: tuple[AnalysisLabel, ...] | None = None
-    people: tuple[AnalysisLabel, ...] | None = None
-    activities: tuple[AnalysisLabel, ...] | None = None
-    type: tuple[AnalysisLabel, ...] | None = None
-    subtype: tuple[AnalysisLabel, ...] | None = None
-    content_sensitivity: tuple[AnalysisLabel, ...] | None = None
-    texts: tuple[AnalysisLabel, ...] | None = None
-    embedding: tuple[AnalysisLabel, ...] | None = None
-    colors: tuple[AnalysisLabel, ...] | None = None
+    logos: Sequence[FoundAttribute] = field(default_factory=list)
+    objects: Sequence[FoundAttribute] = field(default_factory=list)
+    scenes: Sequence[FoundAttribute] = field(default_factory=list)
+    people: Sequence[FoundAttribute] = field(default_factory=list)
+    activities: Sequence[FoundAttribute] = field(default_factory=list)
+    type: str | None = None
+    subtype: str | None = None
+    content_sensitivity: Sequence[FoundAttribute] = field(default_factory=list)
+    texts: Sequence[FoundText] = field(default_factory=list)
+    embedding: Sequence[float] = field(default_factory=list)
+    colors: Sequence[FoundColor] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
 class ImageDetectResponse:
-    results: list[ImageAnalysisResult]
+    results: Sequence[ImageAnalysisResult | ImageAnalysisFailedResult]

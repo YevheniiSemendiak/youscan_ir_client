@@ -11,5 +11,6 @@ class YouScanHeaderNames:
 class YouScanAPIAddr:
     base_url: str = "https://image-recognition.youscan.io/api/v2"
     img_detect_endpoint: str = "images/detect"
-    mock_base_url: str = \
+    mock_base_url: str = (
         "https://private-anon-e92172d288-youscanimagerecognition.apiary-mock.com/api/v2"
+    )

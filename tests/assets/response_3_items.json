@@ -1,0 +1,103 @@
+{
+    "results": [
+        {
+            "activities": [],
+            "scenes": [],
+            "people": [],
+            "objects": [
+                {
+                    "label": "cat",
+                    "confidence": 0.999772846698761
+                },
+                {
+                    "label": "fur",
+                    "confidence": 0.9368776082992554
+                }
+            ],
+            "type": "PHOTO",
+            "subtype": null,
+            "texts": [],
+            "colors": [],
+            "hash": "96e12954da236ade",
+            "version": "2.1",
+            "cached": false,
+            "cached_attributes": [],
+            "cache_origin": null,
+            "elapsed": 1.1305181980133057
+        },
+        {
+            "activities": [],
+            "scenes": [],
+            "people": [],
+            "objects": [],
+            "type": "PHOTO",
+            "subtype": null,
+            "texts": [
+                {
+                    "topleft": {
+                        "x": 168,
+                        "y": 242
+                    },
+                    "bottomright": {
+                        "x": 514,
+                        "y": 362
+                    },
+                    "confidence": 0.4251490831375122,
+                    "label": "tax"
+                }
+            ],
+            "colors": [
+                {
+                    "color": "#424242",
+                    "shade": "#070403",
+                    "percentage": 0.7068
+                }
+            ],
+            "hash": "94966e6c91916b6e",
+            "version": "2.1",
+            "cached": true,
+            "cached_attributes": [
+                "colors",
+                "people",
+                "objects",
+                "type",
+                "scenes",
+                "subtype",
+                "texts",
+                "activities"
+            ],
+            "cache_origin": "phash",
+            "elapsed": 0.08207917213439941
+        },
+        {
+            "activities": [],
+            "scenes": [],
+            "people": [
+                {
+                    "label": "man",
+                    "confidence": 0.9678670167922974
+                }
+            ],
+            "objects": [
+                {
+                    "label": "moustache",
+                    "confidence": 0.9078055620193481
+                },
+                {
+                    "label": "sky",
+                    "confidence": 0.9146081805229187
+                }
+            ],
+            "type": "PHOTO",
+            "subtype": "selfie",
+            "texts": [],
+            "colors": [],
+            "hash": "bfd28ffc405d8089",
+            "version": "2.1",
+            "cached": false,
+            "cached_attributes": [],
+            "cache_origin": null,
+            "elapsed": 0.8592813014984131
+        }
+    ]
+}

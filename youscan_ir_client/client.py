@@ -1,9 +1,11 @@
 from __future__ import annotations
-from dataclasses import dataclass
 from typing import Any, AsyncIterator
 from types import TracebackType
 from contextlib import asynccontextmanager
+from logging import getLogger
+import uuid
 
+import asyncio
 import aiohttp
 from yarl import URL
 
@@ -12,9 +14,7 @@ from .factories import PayloadFactory, EntityFactory
 from .entities import ImageDetectReqParams, ImageDetectResponse
 
 
-@dataclass(frozen=True)
-class _Endpoints:
-    ...
+LOGGER = getLogger(__name__)
 
 
 class YouScanIRClient:
@@ -25,6 +25,8 @@ class YouScanIRClient:
         base_url: URL | str | None = None,
         timeout: aiohttp.ClientTimeout = aiohttp.client.DEFAULT_TIMEOUT,
     ) -> None:
+        assert client_id, "Client ID was not provided"
+        assert client_secret, "Client secret key was not provided"
         self._base_url = URL(base_url) if base_url else URL(YouScanAPIAddr.base_url)
         self._client_id = client_id
         self._client_secret = client_secret
@@ -54,13 +56,33 @@ class YouScanIRClient:
         }
         return headers
 
-    async def analyse(self, params: ImageDetectReqParams) -> ImageDetectResponse:
+    async def analyse(
+        self,
+        params: ImageDetectReqParams,
+        retries: int = 3,
+    ) -> ImageDetectResponse:
         path = YouScanAPIAddr.img_detect_endpoint
-        payload = self._payload_factory.create_image_detect(params)
+        req_payload = self._payload_factory.create_image_detect(params)
+        assert retries >= 1
+        for i in range(1, retries + 1):
+            try:
+                uid = uuid.uuid1()
+                LOGGER.debug(f"POST >>> {path} ({uid.hex}):\n{req_payload}")
 
-        async with self._request("POST", path, json=payload) as response:
-            payload = await response.json()
-            return self._entity_factory.create_detect_response(payload)
+                async with self._request("POST", path, json=req_payload) as response:
+                    resp_payload = await response.json()
+                    LOGGER.debug(f"POST <<< {path} ({uid.hex}):\n{resp_payload}")
+                    break
+
+            except aiohttp.ClientError as e:
+                if i >= retries:
+                    raise
+                sleep = 2**i
+                LOGGER.warning(f"{i}/{retries} trial failed to analyse {params}: {e}")
+                LOGGER.info(f"Waiting {sleep} sec...")
+                await asyncio.sleep(sleep)
+
+        return self._entity_factory.create_detect_response(resp_payload)
 
     async def __aenter__(self) -> YouScanIRClient:
         self._client = await self._create_http_client()

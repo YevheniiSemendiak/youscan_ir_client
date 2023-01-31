@@ -1,0 +1,76 @@
+{
+    "results": [
+        {
+            "activities": [
+                {
+                    "label": "writing-code",
+                    "confidence": 0.99999
+                }
+            ],
+            "scenes": [
+                {
+                    "label": "scene",
+                    "confidence": 0.5
+                }
+            ],
+            "people": [
+                {
+                    "label": "baby",
+                    "confidence": 0.88
+                }
+            ],
+            "objects": [
+                {
+                    "label": "cat",
+                    "confidence": 0.999772846698761
+                }
+            ],
+            "type": "PHOTO",
+            "subtype": "somesubtype",
+            "texts": [
+                {
+                    "topleft": {
+                        "x": 168,
+                        "y": 242
+                    },
+                    "bottomright": {
+                        "x": 514,
+                        "y": 362
+                    },
+                    "confidence": 0.44,
+                    "label": "sometext"
+                }
+            ],
+            "colors": [
+                {
+                    "color": "#424242",
+                    "shade": "#070403",
+                    "percentage": 0.7068
+                }
+            ],
+            "logos": [
+                {
+                    "label": "somebrand",
+                    "confidence": 0.12
+                }
+            ],
+            "embedding": [
+                -0.3353,
+                0.6524,
+                -0.2298
+            ],
+            "content_sensitivity": [
+                {
+                    "label": "neutral",
+                    "confidence": 0.9999967813491821
+                }
+            ],
+            "hash": "96e12954da236ade",
+            "version": "2.1",
+            "cached": true,
+            "cached_attributes": ["activities", "people", "objects"],
+            "cache_origin": null,
+            "elapsed": 1.1305181980133057
+        }
+    ]
+}

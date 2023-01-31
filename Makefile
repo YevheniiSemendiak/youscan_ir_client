@@ -1,6 +1,6 @@
 setup:
 	pip install -U pip
-	pip install -r requirements.txt
+	pip install -e .[dev]
 	pre-commit install
 
 lint: format
