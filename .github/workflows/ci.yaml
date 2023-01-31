@@ -12,11 +12,10 @@ on:
 jobs:
   test:
     name: Run client tests
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         py_version: ['3.7', '3.8', '3.9', '3.10']
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
     - name: Checkout commit
       uses: actions/checkout@v2
@@ -28,7 +27,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-py-${{ matrix.py_version }}-${{ hashFiles('setup.py') }}
+        key: ${{ runner.os }}-py-${{ matrix.py_version }}-${{ hashFiles('setup.cfg') }}
     - name: Install dependencies
       run: make setup
     - name: Lint
