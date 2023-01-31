@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    tags: [v*.*.*]
+  pull_request:
+    branches: [master]
+  schedule:
+  - cron: 0 4 * * *
+
+jobs:
+  test:
+    name: Run client tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        py_version: ['3.7', '3.8', '3.9', '3.10']
+        os: [ubuntu, macos, windows]
+    steps:
+    - name: Checkout commit
+      uses: actions/checkout@v2
+    - name: Install python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.py_version }}
+    - name: Cache packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-py-${{ matrix.py_version }}-${{ hashFiles('setup.py') }}
+    - name: Install dependencies
+      run: make setup
+    - name: Lint
+      run: |
+        echo "::add-matcher::.github/actionlint-matcher.json"
+        make lint
+      env:
+        CI_LINT_RUN: 1
+    - name: Run tests
+      run: make test
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2.0.2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: .coverage.xml
+        name: client-codecov
+        flags: py${{ matrix.py_version }}
+  release:
+    name: Release client
+    runs-on: ubuntu-latest
+    needs:
+    - test
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+    - name: Checkout commit
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Install python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install twine build
+    - name: Make dist
+      run: |
+        python -m build
+    - name: PyPI upload
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        TWINE_NON_INTERACTIVE: 1
+      run: |
+        twine upload dist/*
