@@ -123,7 +123,7 @@ class EntityFactory:
             if "status" in img_res_payload:
                 # Observations, why errors might occur:
                 # 1. Signature expired
-                # 2. Object type (we store .mp4 files under .jpg key in s3)
+                # 2. File type mismatch (e.g. .mp4 files stored with *.jpg name)
                 results.append(cls.create_img_analysis_failed_result(img_res_payload))
             else:
                 results.append(cls.create_img_analysis_result(img_res_payload))
