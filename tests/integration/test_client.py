@@ -4,7 +4,7 @@ import pytest
 import json
 import logging
 from pathlib import Path
-from aiohttp import web
+from aiohttp import web, client_exceptions
 from typing import AsyncIterator, Callable
 
 from youscan_ir_client.entities import (
@@ -14,6 +14,7 @@ from youscan_ir_client.entities import (
 )
 from youscan_ir_client.client import YouScanIRClient
 from youscan_ir_client.entities import AnalysisAttributes, ImageAnalysisResult
+from youscan_ir_client.config import YouScanAPIAddr
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -39,7 +40,11 @@ class TestClient:
                 }
             )
 
+        async def images_detect_corrupted(req: web.Request) -> web.Response:
+            return web.json_response({"reason": "bad response"})
+
         app.router.add_post("/images/detect", images_detect)
+        app.router.add_post("/images/detect_corrupted", images_detect_corrupted)
 
         runner = web.AppRunner(app)
         try:
@@ -88,3 +93,32 @@ class TestClient:
         three_res = await client.analyse(three_img_req)
         assert len(three_res.results) == 3
         assert all(isinstance(x, ImageAnalysisResult) for x in three_res.results)
+
+    @pytest.mark.asyncio
+    async def test_analyse_endpoint_corrupted(
+        self,
+        client: YouScanIRClient,
+        analyse_params_factory: Callable[[int], ImageDetectReqParams],
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+
+        one_img_req = analyse_params_factory(1)
+        YouScanAPIAddr.img_detect_endpoint = "images/detect_corrupted"
+        with pytest.raises(AssertionError):
+            await client.analyse(one_img_req, retries=1)
+        assert "Error while parsing response for" in caplog.text
+        assert "bad response" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_analyse_endpoint_not_exist(
+        self,
+        client: YouScanIRClient,
+        analyse_params_factory: Callable[[int], ImageDetectReqParams],
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+
+        one_img_req = analyse_params_factory(1)
+        YouScanAPIAddr.img_detect_endpoint = "images/nonexisting_endpoint"
+        with pytest.raises(client_exceptions.ClientResponseError):
+            await client.analyse(one_img_req, retries=1)
+        assert "Analyse request failed for" in caplog.text

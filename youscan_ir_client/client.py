@@ -73,17 +73,25 @@ class YouScanIRClient:
                 async with self._request("POST", path, json=req_payload) as response:
                     resp_payload = await response.json()
                     LOGGER.debug(f"POST <<< {path} ({uid.hex}):\n{resp_payload}")
-                    break
 
-            except aiohttp.ClientError as e:
+                    resp_entity = self._entity_factory.create_detect_response(
+                        resp_payload
+                    )
+                    return resp_entity
+
+            except Exception as e:
+                if isinstance(e, aiohttp.ClientError):
+                    LOGGER.error(f"Analyse request failed for '{params}'")
+                else:
+                    LOGGER.error(f"Error while parsing response for '{params}'")
+                    LOGGER.warning(resp_payload)
                 if i >= retries:
                     raise
                 sleep = 2**i
-                LOGGER.warning(f"{i}/{retries} trial failed to analyse {params}: {e}")
-                LOGGER.info(f"Waiting {sleep} sec...")
+                LOGGER.info(f"{i}/{retries} retry in {sleep} sec...")
                 await asyncio.sleep(sleep)
 
-        return self._entity_factory.create_detect_response(resp_payload)
+        raise RuntimeError("This should not happen")
 
     async def __aenter__(self) -> YouScanIRClient:
         self._client = await self._create_http_client()
