@@ -70,11 +70,11 @@ class ImageAnalysisFailedResult:
 
 @dataclass(frozen=True)
 class ImageAnalysisResult:
-    version: str
-    cached: bool
-    cached_attributes: Sequence[AnalysisAttributes]
-    hash: str
-    elapsed: float
+    version: str | None
+    cached: bool | None
+    cached_attributes: Sequence[AnalysisAttributes] | None
+    hash: str | None
+    elapsed: float | None
     cache_origin: str | None = None
     # Those are returned if ImageDetectReqParams.analyse_attributes contains them
     logos: Sequence[FoundAttribute] = field(default_factory=list)

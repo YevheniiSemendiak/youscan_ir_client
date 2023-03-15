@@ -138,6 +138,23 @@ class TestEntityFactory:
         assert isinstance(resp.results[1], ImageAnalysisFailedResult)
         assert isinstance(resp.results[0], ImageAnalysisResult)
 
+    def test_handling_absent_fields(
+        self,
+        factory: EntityFactory,
+        response_payload_factory: Callable[[str], dict[str, Any]],
+    ) -> None:
+        payload = response_payload_factory("response_1_item_absent_fields.json")
+        resp = factory.create_detect_response(payload)
+        assert isinstance(resp, ImageDetectResponse)
+        assert isinstance(resp.results[0], ImageAnalysisResult)
+        assert len(resp.results) == 1, resp
+        assert resp.results[0].version is None
+        assert resp.results[0].hash is None
+        assert resp.results[0].cached is True
+        assert resp.results[0].cached_attributes is None
+        assert resp.results[0].cache_origin is None
+        assert resp.results[0].elapsed is None
+
 
 class TestPayloadFactory:
     @pytest.fixture

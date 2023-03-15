@@ -48,12 +48,12 @@ class EntityFactory:
     @classmethod
     def create_img_analysis_result(cls, payload: dict[str, Any]) -> ImageAnalysisResult:
         return ImageAnalysisResult(
-            version=payload["version"],
-            cached=payload["cached"],
-            cached_attributes=payload["cached_attributes"],
-            hash=payload["hash"],
-            cache_origin=payload["cache_origin"],
-            elapsed=payload["elapsed"],
+            version=payload.get("version"),
+            cached=payload.get("cached"),
+            cached_attributes=payload.get("cached_attributes"),
+            hash=payload.get("hash"),
+            cache_origin=payload.get("cache_origin"),
+            elapsed=payload.get("elapsed"),
             logos=[cls.create_found_attribute(x) for x in payload.get("logos", [])],
             objects=[cls.create_found_attribute(x) for x in payload.get("objects", [])],
             scenes=[cls.create_found_attribute(x) for x in payload.get("scenes", [])],
