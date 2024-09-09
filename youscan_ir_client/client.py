@@ -81,7 +81,7 @@ class YouScanIRClient:
 
             except Exception as e:
                 if isinstance(e, aiohttp.ClientError):
-                    LOGGER.error(f"Analyse request failed for '{params}'")
+                    LOGGER.warning(f"Analyse request failed for '{params}'")
                 else:
                     LOGGER.error(f"Error while parsing response for '{params}'")
                     LOGGER.warning(resp_payload)
