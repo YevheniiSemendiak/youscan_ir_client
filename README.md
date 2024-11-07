@@ -1,4 +1,15 @@
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/youscan-ir-client)
+![PyPI - Version](https://img.shields.io/pypi/v/youscan-ir-client)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/youscan-ir-client)
+
+
 # YouScan image recognition API client on Python
+
+## Installation
+
+```bash
+pip install youscan-ir-client
+```
 
 ## Usage
 
